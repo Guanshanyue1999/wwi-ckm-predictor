@@ -21,6 +21,7 @@
 \usepackage{multirow}
 \usepackage{longtable}
 \usepackage{float}
+\usepackage{subcaption}
 % —— 代码高亮/自动换行（listings，不需要 shell-escape）——
 \usepackage{listings}
 \usepackage{xcolor}
@@ -90,7 +91,7 @@
 %================== 摘要 ==================
 \section*{摘要}
 \noindent
-心肾代谢综合征（Cardiovascular–Kidney–Metabolic, CKM）由心血管疾病（Cardiovascular Disease, CVD）、慢性肾脏病（Chronic Kidney Disease, CKD）与代谢危险因素在病理生理上的相互作用共同构成，反映从单病种向多系统共病综合管理的范式转变。\ 基于既往研究思路与Python工作流，本文以社区老年横断面数据为例，围绕体重调整腰围指数（Weight-Adjusted Waist Index, WWI）与代谢综合征（Metabolic Syndrome, MetS）及其组分、CVD、脑血管疾病（Cerebrovascular Disease, CbVD）与 CKM 的关联开展统计建模与预测评估：完成数据读取与预处理、特征构造（WWI/腰围身高比 Waist-to-Height Ratio, WHtR/内脏脂肪指数 Visceral Adiposity Index, VAI/脂肪积聚产物 Lipid Accumulation Product, LAP/心代谢指数 Cardiometabolic Index, CMI/身体圆形度指数 Body Roundness Index, BRI/身体形状指数 A Body Shape Index, ABSI/圆锥指数 Conicity Index, CI 等）、描述性统计与组间比较、Logistic 回归（连续与四分位）、亚组/交互、受试者工作特征（Receiver Operating Characteristic, ROC）曲线比较以及多指标联合模型。\textbf{本研究进一步采用LASSO特征选择与多种机器学习算法（Logistic Regression、Random Forest、XGBoost、LightGBM、MLP神经网络）构建CKM预测模型，通过10折交叉验证、校准曲线、决策曲线分析（DCA）与SHAP可解释性分析进行综合评估，并开发了基于Streamlit的交互式风险预测网页应用。}主要发现：（1）WWI 与 MetS 呈显著正相关，四分位趋势明确；（2）充分调整后，WWI 对 CVD 的独立关联减弱，但对 CbVD 仍为显著；（3）WWI 与 CKM 呈强相关，联合 BMI、WC 等可显著提升判别力；\textbf{（4）XGBoost模型对CKM的预测性能最佳（AUC=0.87），SHAP分析表明WWI是模型的重要贡献因子。}
+心肾代谢综合征（Cardiovascular–Kidney–Metabolic, CKM）由心血管疾病（Cardiovascular Disease, CVD）、慢性肾脏病（Chronic Kidney Disease, CKD）与代谢危险因素在病理生理上的相互作用共同构成，反映从单病种向多系统共病综合管理的范式转变。\ 基于既往研究思路与Python工作流，本文以社区老年横断面数据为例，围绕体重调整腰围指数（Weight-Adjusted Waist Index, WWI）与代谢综合征（Metabolic Syndrome, MetS）及其组分、CVD、脑血管疾病（Cerebrovascular Disease, CbVD）与 CKM 的关联开展统计建模与预测评估：完成数据读取与预处理、特征构造（WWI/腰围身高比 Waist-to-Height Ratio, WHtR/内脏脂肪指数 Visceral Adiposity Index, VAI/脂肪积聚产物 Lipid Accumulation Product, LAP/心代谢指数 Cardiometabolic Index, CMI/身体圆形度指数 Body Roundness Index, BRI/身体形状指数 A Body Shape Index, ABSI/圆锥指数 Conicity Index, CI 等）、描述性统计与组间比较、Logistic 回归（连续与四分位）、亚组/交互、受试者工作特征（Receiver Operating Characteristic, ROC）曲线比较以及多指标联合模型。\textbf{本研究进一步采用LASSO特征选择与多种机器学习算法（Logistic Regression、Random Forest、XGBoost、LightGBM、MLP神经网络）构建CKM预测模型，通过10折交叉验证、校准曲线、决策曲线分析（DCA）与SHAP可解释性分析进行综合评估，并开发了基于Streamlit的交互式风险预测网页应用。}主要发现：（1）WWI 与 MetS 呈显著正相关，四分位趋势明确；（2）充分调整后，WWI 对 CVD 的独立关联减弱，但对 CbVD 仍为显著；（3）WWI 与 CKM 呈强相关，联合 BMI、WC 等可显著提升判别力；\textbf{（4）XGBoost模型对CKM的预测性能最佳（AUC=0.93），SHAP显示WC/WHtR等中心性肥胖指标与eGFR、血糖等代谢指标贡献更大，WWI仍有贡献。}
 
 \section*{关键词}
 CKM；WWI；代谢综合征；机器学习；XGBoost；SHAP；老年人群
@@ -181,10 +182,17 @@ RCS 显示 WWI 与 CKM 显著正相关且存在非线性（$P_{\text{非线性}}
 \subsection*{4.6 机器学习预测模型结果}
 
 \subsubsection*{4.6.1 LASSO特征选择结果}
-经10折交叉验证LASSO回归（最优$\lambda$=0.0023），从24个候选特征中选出18个非零系数特征。按绝对值排序，前10位依次为：WWI（系数0.58）、FBG（0.42）、TG（0.38）、SBP（0.31）、eGFR（-0.28）、年龄（0.25）、HDL-C（-0.22）、WC（0.18）、BMI（0.15）、DBP（0.12）。WWI在LASSO特征选择中位列首位，证实其对CKM预测的重要性。
+经10折交叉验证LASSO回归（最优$\lambda$=0.000090），从20个候选特征中保留20个非零系数特征。按绝对值排序，前10位依次为：WHtR\_2023（0.234）、BMI\_2023（-0.143）、WWI\_2023（-0.128）、eGFR\_2023（-0.060）、WC\_2023（0.058）、Sex（0.039）、AGE\_2023（0.022）、DYS\_drugs\_2023（0.021）、LDL\_2023（-0.020）、FBG\_2023（0.019）。整体上，体测指标与代谢/肾功能指标均进入前列，为后续模型训练提供基础。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{lasso_coefficients.png}
+\caption{LASSO特征选择系数（非零项）。}
+\label{fig:lasso}
+\end{figure}
 
 \subsubsection*{4.6.2 模型性能比较}
-表\ref{tab:ml_performance}展示了5种机器学习模型对CKM的预测性能比较。XGBoost模型表现最佳，10折交叉验证AUC为$0.854\pm0.023$，测试集AUC为0.867，F1分数0.412。LightGBM与Random Forest性能相近，传统Logistic Regression作为基线模型也达到了0.821的测试AUC。DeLong检验显示，XGBoost显著优于Logistic Regression（$P=0.012$）。
+表\ref{tab:ml_performance}展示了5种机器学习模型对CKM的预测性能比较。XGBoost模型表现最佳，10折交叉验证AUC为$0.917\pm0.012$，测试集AUC为0.926，F1分数0.490。LightGBM与Random Forest性能接近，传统Logistic Regression作为基线模型测试AUC为0.885。DeLong检验显示，XGBoost显著优于Logistic Regression与MLP（均$P<0.001$），与Random Forest/LightGBM差异不显著（$P>0.3$）。
 
 \begin{table}[htbp]
 \centering
@@ -194,11 +202,11 @@ RCS 显示 WWI 与 CKM 显著正相关且存在非线性（$P_{\text{非线性}}
 \toprule
 模型 & CV AUC & 测试AUC & 准确率 & 精确度 & 召回率 & F1分数 \\
 \midrule
-Logistic Regression & $0.812\pm0.025$ & 0.821 & 0.785 & 0.324 & 0.518 & 0.398 \\
-Random Forest & $0.843\pm0.021$ & 0.852 & 0.802 & 0.358 & 0.485 & 0.412 \\
-\textbf{XGBoost} & $\mathbf{0.854\pm0.023}$ & \textbf{0.867} & \textbf{0.812} & \textbf{0.372} & 0.492 & \textbf{0.424} \\
-LightGBM & $0.851\pm0.022$ & 0.861 & 0.808 & 0.365 & 0.498 & 0.421 \\
-MLP Neural Network & $0.835\pm0.028$ & 0.842 & 0.794 & 0.345 & \textbf{0.532} & 0.418 \\
+Logistic Regression & $0.857\pm0.015$ & 0.885 & 0.784 & 0.302 & 0.854 & 0.446 \\
+Random Forest & $0.903\pm0.012$ & 0.918 & 0.882 & 0.444 & 0.629 & 0.521 \\
+\textbf{XGBoost} & $\mathbf{0.917\pm0.012}$ & \textbf{0.926} & 0.830 & 0.352 & 0.803 & 0.490 \\
+LightGBM & $0.915\pm0.011$ & 0.922 & 0.842 & 0.368 & 0.775 & 0.499 \\
+MLP Neural Network & $0.878\pm0.017$ & 0.887 & 0.919 & 0.750 & 0.303 & 0.432 \\
 \bottomrule
 \end{tabular}
 
@@ -207,37 +215,40 @@ MLP Neural Network & $0.835\pm0.028$ & 0.842 & 0.794 & 0.345 & \textbf{0.532} & 
 \end{table}
 
 \subsubsection*{4.6.3 校准与决策曲线分析}
-图\ref{fig:model_evaluation}展示了模型综合评估结果。校准曲线显示，XGBoost模型的预测概率与实际观测概率吻合良好（Hosmer-Lemeshow检验$P=0.352$），Brier分数0.089。决策曲线分析表明，在阈值概率0.05–0.40范围内，XGBoost模型的净收益（Net Benefit）始终高于"全部治疗"和"全部不治疗"策略，提示该模型在临床决策中具有实用价值。
+图\ref{fig:model_evaluation}展示了模型综合评估结果。校准曲线显示，XGBoost模型的预测概率与实际观测概率一致性较好，Brier分数0.101。决策曲线分析表明，在常见阈值概率范围内，XGBoost模型的净收益（Net Benefit）高于"全部治疗"和"全部不治疗"策略，提示该模型在临床决策中具有实用价值。
 
 \begin{figure}[htbp]
 \centering
-\fbox{\parbox{0.9\textwidth}{\centering
-\vspace{2cm}
-\textbf{图1: 模型综合评估图}\\[0.5cm]
-(A) ROC曲线比较 \quad (B) 校准曲线\\
-(C) 决策曲线分析 \quad (D) 性能指标汇总表\\[0.5cm]
-\textit{[运行代码生成: CKM\_model\_evaluation.png]}
-\vspace{2cm}
-}}
-\caption{CKM预测模型综合评估。(A) 5种模型的ROC曲线比较，XGBoost（AUC=0.867）表现最佳；(B) 校准曲线显示XGBoost预测概率与实际概率吻合良好；(C) 决策曲线分析表明XGBoost在阈值0.05-0.40区间净收益最高；(D) 模型性能指标汇总。}
+\includegraphics[width=0.9\textwidth]{comprehensive_evaluation_ckm.png}
+\caption{CKM预测模型综合评估。(A) 5种模型的ROC曲线比较，XGBoost（AUC=0.926）表现最佳；(B) 校准曲线显示XGBoost预测概率与实际概率吻合良好；(C) 决策曲线分析表明XGBoost在常见阈值区间净收益较高；(D) 模型性能指标汇总。}
 \label{fig:model_evaluation}
 \end{figure}
 
 \subsubsection*{4.6.4 SHAP可解释性分析}
-图\ref{fig:shap}展示了XGBoost模型的SHAP特征重要性分析结果。Summary Plot显示，WWI的SHAP值贡献排名第一（平均$|\text{SHAP}|$=0.42），其次是FBG（0.35）、TG（0.31）、年龄（0.28）、eGFR（0.25）。从SHAP依赖图可见，WWI与CKM风险呈正向非线性关系：当WWI$>$11.5时，SHAP值急剧上升，提示高WWI对CKM风险的贡献放大。性别交互效应显示，男性中WWI的SHAP贡献更大，与亚组分析结果一致。
+图\ref{fig:shap}展示了XGBoost模型的SHAP特征重要性分析结果。Summary Plot显示，WC\_2023的贡献最高（平均$|\text{SHAP}|$=1.69），其次为WHtR\_2023（0.75）、eGFR\_2023（0.51）、Sex（0.46）、FBG\_2023（0.38）。总体来看，中心性肥胖指标与代谢/肾功能指标对模型贡献更大，WWI\_2023仍有贡献但排序靠后。
 
 \begin{figure}[htbp]
 \centering
-\fbox{\parbox{0.9\textwidth}{\centering
-\vspace{2cm}
-\textbf{图2: SHAP可解释性分析}\\[0.5cm]
-(A) SHAP Summary Plot (Beeswarm)\\
-(B) SHAP Feature Importance (Bar)\\[0.5cm]
-\textit{[运行代码生成: CKM\_shap\_analysis.png]}
-\vspace{2cm}
-}}
-\caption{XGBoost模型的SHAP特征重要性分析。(A) Beeswarm图展示各特征SHAP值分布，WWI贡献最大且高值（红色）对应正向SHAP；(B) 条形图按平均绝对SHAP值排序，WWI位列首位。}
+\begin{subfigure}[b]{0.48\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{shap_summary_ckm.png}
+  \caption{SHAP Summary Plot}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{0.48\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{shap_importance_ckm.png}
+  \caption{SHAP Feature Importance}
+\end{subfigure}
+\caption{XGBoost模型的SHAP特征重要性分析。}
 \label{fig:shap}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.7\textwidth]{shap_dependence_wwi_ckm.png}
+\caption{WWI的SHAP依赖图。}
+\label{fig:shap_wwi}
 \end{figure}
 
 \subsection*{4.7 网页应用展示}
@@ -251,7 +262,7 @@ MLP Neural Network & $0.835\pm0.028$ & 0.842 & 0.794 & 0.345 & \textbf{0.532} & 
 \centering
 \fbox{\parbox{0.9\textwidth}{\centering
 \vspace{2cm}
-\textbf{图3: CKM风险预测网页应用界面}\\[0.5cm]
+\textbf{CKM风险预测网页应用界面}\\[0.5cm]
 左侧：用户输入面板 \quad 右侧：风险评估仪表盘\\
 底部：健康建议与指标解读\\[0.5cm]
 \textit{[应用截图]}
@@ -265,7 +276,7 @@ MLP Neural Network & $0.835\pm0.028$ & 0.842 & 0.794 & 0.345 & \textbf{0.532} & 
 \section{Discussion}
 本研究表明，WWI 与 MetS、CVD 及 CKM 风险均呈正相关，但不同结局的关联强度存在差异：WWI 与 MetS 及其组分稳健相关\cite{Yang2024,Wu2021}；对综合心脏事件的独立性在充分调整后减弱，可能与"肥胖悖论"等因素相关\cite{Antonopoulos2016,Hainer2013,Clark2011}；而对脑血管（卒中）风险的独立预测仍显著\cite{Park2018,Ye2023}。最重要的是，WWI 与 CKM 的关联强度最大，提示其可能对多器官共病状态具有更高的敏感性；男性与未用药亚组中 WWI 效应更强，提示性别与治疗因素的潜在调节作用\cite{Park2018}。临床上，WWI 简便易得，结合 BMI/WC 等可提升高风险老年人的识别效率。综合来看，WWI 的临床应用价值更可能体现为与 WC/WHtR/BMI 的互补，而非对单一传统指标的完全替代。
 
-\textbf{在预测建模方面，本研究发现XGBoost模型对CKM的预测性能最佳（AUC=0.867），显著优于传统Logistic回归。这与既往文献中集成学习方法在心血管代谢疾病预测中的优势相一致\cite{Chen2016}。SHAP分析不仅量化了WWI对CKM预测的首要贡献，还揭示了其与结局间的非线性剂量—反应关系，为WWI的临床应用提供了可解释的证据支撑。决策曲线分析表明，XGBoost模型在广泛的阈值概率范围内具有临床净收益，支持其作为CKM筛查工具的可行性。}
+\textbf{在预测建模方面，本研究发现XGBoost模型对CKM的预测性能最佳（AUC=0.926），显著优于传统Logistic回归。这与既往文献中集成学习方法在心血管代谢疾病预测中的优势相一致\cite{Chen2016}。SHAP分析显示，中心性肥胖指标（WC/WHtR）与代谢、肾功能指标对模型贡献更大，WWI仍提供补充信息。决策曲线分析表明，XGBoost模型在常见阈值概率范围内具有临床净收益，支持其作为CKM筛查工具的可行性。}
 
 \textbf{本研究的优势包括：（1）较大的社区样本量（n=8742）保证了统计效力；（2）综合比较了多种体测指标与多种机器学习算法；（3）遵循TRIPOD+AI规范进行方法学设计与报告；（4）通过SHAP提供了模型可解释性；（5）开发了可部署的交互式预测工具。局限性包括：（1）横断面设计无法建立因果关系，需前瞻性验证；（2）CKM定义为横断面操作定义，与AHA原始分期略有差异；（3）模型未经外部验证；（4）部分MetS/CKM组分依赖自报用药史。}
 

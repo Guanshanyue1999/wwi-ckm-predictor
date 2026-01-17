@@ -633,8 +633,8 @@ def main():
         
         - WWI与CKM呈显著正相关（OR约1.78，95%CI: 1.47-2.14）
         - WWI最高四分位相比最低四分位CKM风险显著升高（OR约8.61）
-        - XGBoost模型预测CKM的AUC达到0.85以上
-        - SHAP分析显示WWI是CKM预测的重要贡献因子
+        - XGBoost模型预测CKM的AUC达到0.93左右
+        - SHAP分析显示WC/WHtR等指标贡献更大，WWI仍有贡献
         
         ### 作者信息
         
