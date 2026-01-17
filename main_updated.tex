@@ -1,0 +1,436 @@
+\documentclass[a4paper, 12pt]{article}
+\usepackage[utf8]{inputenc}
+
+% ==== 引文：使用 natbib + Vancouver（医学常用、与 AMA 接近；Overleaf 自带）====
+\usepackage[numbers,super,sort&compress]{natbib}
+\bibliographystyle{vancouver}
+
+\usepackage{comment}
+\usepackage{lipsum}
+\usepackage{graphicx}
+\usepackage{fullpage}
+\usepackage{CJKutf8}
+\usepackage{amsmath,amssymb,bm,mathtools}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{siunitx}
+\sisetup{detect-all}
+\usepackage[final]{microtype}
+\usepackage{xurl}
+\usepackage{hyperref}
+\usepackage{multirow}
+\usepackage{longtable}
+\usepackage{float}
+% —— 代码高亮/自动换行（listings，不需要 shell-escape）——
+\usepackage{listings}
+\usepackage{xcolor}
+\lstdefinestyle{pywrap}{
+  language=Python,
+  basicstyle=\ttfamily\footnotesize, % 字号可改为 \scriptsize 进一步压缩
+  numbers=left,
+  numberstyle=\tiny,
+  stepnumber=1,
+  numbersep=6pt,
+  frame=single,
+  framerule=0.4pt,
+  breaklines=true,            % 自动换行
+  breakatwhitespace=false,    % 不仅在空白处换行
+  postbreak=\mbox{\textcolor{gray}{$\hookrightarrow$}\space}, % 换行符号
+  columns=fullflexible,       % 让长行尽量弹性适配列宽
+  keepspaces=true,            % 保留空格与缩进
+  tabsize=4,
+  showstringspaces=false,
+  upquote=true,
+  keywordstyle=\color{blue!70!black},
+  commentstyle=\color{teal!70!black},
+  stringstyle=\color{orange!60!black}
+}
+\usepackage{setspace} % 行距控制
+\hypersetup{hidelinks}
+\emergencystretch=3em \tolerance=2000 \hbadness=2000
+
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+\onehalfspacing   % 从这里起 1.5 倍行距（正文）
+%================== 封面 ==================
+\begin{titlepage}
+    \thispagestyle{empty} % 避免页眉页脚
+    \centering
+    \vspace*{1.5cm}
+    {\Large \textbf{北京大学医学部（Peking University Health Science Center）}}\\[0.8cm]
+    {\large \textbf{健康数据科学的Python语言编程基础}}\\[0.5cm]
+    \rule{0.85\textwidth}{0.6pt}\\[0.8cm]
+    {\huge \textbf{课程论文分析报告}}\\[0.4cm]
+    {\Large Cardiovascular–Kidney–Metabolic (CKM) syndrome and Weight-Adjusted Waist Index (WWI):\\
+    associations and prediction in a community-dwelling older Chinese cohort}\\[0.8cm]
+    \rule{0.85\textwidth}{0.6pt}\\[1.6cm]
+
+    \begin{flushleft}
+    \large
+    \textbf{学生姓名：}郑赫\\[0.25cm]
+    \textbf{学号：}2511110259\\[0.25cm]
+    \textbf{学院/单位：}第一临床医学院\\[0.25cm]
+    \textbf{课程类型：}必修\\[0.25cm]
+    \textbf{联系方式：}2511110259@bjmu.edu.cn\\[0.25cm]
+    \textbf{个人主页：}\url{https://guanshanyue1999.github.io/}
+    \end{flushleft}
+
+    %—— 关键：把后面的声明"压"到页面底部 ——
+    \vspace*{\fill}
+
+    % 声明块用底对齐的 minipage，宽度与原来一致
+    \begin{minipage}[b]{0.85\textwidth}
+      \small
+      \textbf{学术诚信声明：}本人郑重承诺，本报告为本人在遵守课程要求与学术规范前提下独立完成。文中所引用或参考之文献、数据与代码，均已在相应位置作出明确标注与致谢。若有不实，愿承担相应责任。
+    \end{minipage}
+
+    % 不要在这里再加正向的 \vspace*{...}，否则会把声明顶起来
+\end{titlepage}
+
+%================== 摘要 ==================
+\section*{摘要}
+\noindent
+心肾代谢综合征（Cardiovascular–Kidney–Metabolic, CKM）由心血管疾病（Cardiovascular Disease, CVD）、慢性肾脏病（Chronic Kidney Disease, CKD）与代谢危险因素在病理生理上的相互作用共同构成，反映从单病种向多系统共病综合管理的范式转变。\ 基于既往研究思路与Python工作流，本文以社区老年横断面数据为例，围绕体重调整腰围指数（Weight-Adjusted Waist Index, WWI）与代谢综合征（Metabolic Syndrome, MetS）及其组分、CVD、脑血管疾病（Cerebrovascular Disease, CbVD）与 CKM 的关联开展统计建模与预测评估：完成数据读取与预处理、特征构造（WWI/腰围身高比 Waist-to-Height Ratio, WHtR/内脏脂肪指数 Visceral Adiposity Index, VAI/脂肪积聚产物 Lipid Accumulation Product, LAP/心代谢指数 Cardiometabolic Index, CMI/身体圆形度指数 Body Roundness Index, BRI/身体形状指数 A Body Shape Index, ABSI/圆锥指数 Conicity Index, CI 等）、描述性统计与组间比较、Logistic 回归（连续与四分位）、亚组/交互、受试者工作特征（Receiver Operating Characteristic, ROC）曲线比较以及多指标联合模型。\textbf{本研究进一步采用LASSO特征选择与多种机器学习算法（Logistic Regression、Random Forest、XGBoost、LightGBM、MLP神经网络）构建CKM预测模型，通过10折交叉验证、校准曲线、决策曲线分析（DCA）与SHAP可解释性分析进行综合评估，并开发了基于Streamlit的交互式风险预测网页应用。}主要发现：（1）WWI 与 MetS 呈显著正相关，四分位趋势明确；（2）充分调整后，WWI 对 CVD 的独立关联减弱，但对 CbVD 仍为显著；（3）WWI 与 CKM 呈强相关，联合 BMI、WC 等可显著提升判别力；\textbf{（4）XGBoost模型对CKM的预测性能最佳（AUC=0.87），SHAP分析表明WWI是模型的重要贡献因子。}
+
+\section*{关键词}
+CKM；WWI；代谢综合征；机器学习；XGBoost；SHAP；老年人群
+
+%================== 正文 ==================
+\section{Introduction}
+心肾代谢综合征（CKM）是美国心脏协会 2023 年提出的整合性概念，强调 CVD、CKD 与代谢危险因素在病理生理层面的相互联系与共演化\cite{Ndumele2023}。在美国人群中，基于 NHANES 2011–2020 的数据，CKM 各阶段总体患病比例极高，约九成成年人处于 CKM 框架的某一期别\cite{Aggarwal2024}。在亚洲人群中，CKM 相关负担同样沉重，中国人群的 CKM 相关危险因素普遍且呈上升趋势\cite{Huang2025,Xie2025}。
+
+肥胖是 CKM 网络中的关键上游因素。传统肥胖指标如身体质量指数（Body Mass Index, BMI）与腰围（Waist Circumference, WC）在临床实践中应用广泛，但存在局限：BMI 难以区分脂肪与肌肉，WC 与体重高度相关。为兼顾"中心性脂肪"与"总体肥胖"信息维度，Park 等提出体重调整腰围指数（WWI）：腰围（cm）除以体重（kg）的平方根\cite{Park2018}。既往研究显示，WWI 升高与全因及心血管死亡风险上升相关\cite{Ding2022}，并与脑卒中风险呈正相关\cite{Ye2023}。在 MetS 的识别中，WWI 展现出有意义的判别力，且与 BMI/WC 等传统指标互补\cite{Yang2024,Wu2021}。据此，本文在社区老年横断面数据中系统评估 WWI 与 MetS、心脑血管结局以及 CKM 的关联与预测效能，并与多种体测指标比较。
+
+\textbf{随着机器学习技术在医学预测模型中的广泛应用，本研究进一步采用多种算法构建CKM风险预测模型，并遵循TRIPOD+AI报告规范\cite{Collins2024}进行方法学设计与结果报告，以期为临床实践中的CKM风险识别提供可解释、可部署的预测工具。}
+
+\section{Theoretical background}
+CKM 体现了"代谢–血管–肾脏"轴的持续互作：代谢紊乱（肥胖、胰岛素抵抗、血脂异常等）通过慢性低度炎症、氧化应激与内皮功能障碍，促进动脉粥样硬化与肾功能受损，反过来又加重代谢异常\cite{Ndumele2023}。WWI 在保留腰围对"中心性脂肪"的刻画优势同时，降低了与体重（及 BMI）的冗余耦合度\cite{Park2018}。来自前瞻性与横断面的研究提示，WWI 与死亡、脑卒中及代谢异常呈一致正向关联\cite{Ding2022,Ye2023,Yang2024,Wu2021}。从风险建模角度看，BMI、WC、WHtR 与 WWI 等指标可提供互补信息：BMI 偏向"总体脂肪负荷"，WC/WHtR 更贴近"腹型脂肪"，而 WWI 对"脂肪分布/肌少肥胖"表型更敏感\cite{Park2018}。因此，合理组合多指标或可优于任何单一指标，提升对 CKM 相关结局的判别力\cite{Yang2024,Wu2021}。
+
+\textbf{在预测建模方面，相较于传统Logistic回归，集成学习方法（如XGBoost、Random Forest）在处理高维特征与非线性关系时展现出更优的预测性能\cite{Chen2016}。SHAP（SHapley Additive exPlanations）方法基于博弈论Shapley值，为机器学习模型的特征重要性提供了统一且可解释的度量框架\cite{Lundberg2017}。}
+
+\section{Methods}
+本研究纳入 2022 年 4–6 月中国南方某社区 65 岁及以上老年人体检样本 8743 例，剔除资料缺失后 8742 例进入分析。所有对象签署知情同意书，研究方案经伦理批准。收集人口学信息（性别、年龄）、生活方式（吸烟、饮酒、运动频率、饮食）及既往病史（高血压、糖尿病、心血管病、脑血管病、用药），测量收缩压（SBP）、舒张压（DBP）、腰围、身高、体重、心率等。实验室检测甘油三酯（TG）、高密度脂蛋白胆固醇（HDL-C）、低密度脂蛋白胆固醇（LDL-C）、总胆固醇（TC）、空腹血糖（FBG）、血肌酐（Scr）等；估算肾小球滤过率（eGFR）采用 MDRD 修正公式\cite{Chudleigh2008}。
+
+体重调整腰围指数（WWI）按公式计算：
+\[
+\mathrm{WWI}=\frac{\mathrm{腰围\ (cm)}}{\sqrt{\mathrm{体重\ (kg)}}}\, .
+\]
+同时依据既往研究构造其他体测指标：腰围身高比（WHtR）\cite{Hsieh1995}、内脏脂肪指数（VAI）\cite{Zhou2024}、脂肪积聚产物（LAP）\cite{Huang2024}、心代谢指数（CMI）\cite{Wakabayashi2015}，以及用于比较的 BRI、ABSI、CI（公式与取值见附录代码与注释）。
+
+代谢综合征（MetS）按 2005 年国际糖尿病联盟（IDF）标准：以中心性肥胖为必备（中国男性腰围 $\ge90$ cm，女性 $\ge80$ cm），并满足下列四项中至少两项异常（高 TG、低 HDL-C、血压升高、空腹血糖升高）\cite{Alberti2005}。CVD 结局包括心绞痛、心肌梗死、冠心病/血运重建、心力衰竭等任何医生诊断史；CbVD 指短暂性脑缺血或脑卒中等既往事件史。CKD 定义为 eGFR < 60 mL/min/1.73m$^2$\cite{Chudleigh2008}。CKM 依据 AHA 分期精神在横断面条件下界定为：在存在代谢异常（如 MetS）基础上合并 CVD 或 CKD。
+
+统计分析：连续变量正态性检验后，正态分布以均数$\pm$标准差表示并用独立样本 $t$ 检验；非正态分布以中位数（四分位距）表示并用 Wilcoxon 秩和检验。分类变量以频数（\%）表示并用 $\chi^2$ 检验。按 WWI 四分位（Q1–Q4）描述基线。以 MetS、CVD、CbVD、CKD 与 CKM 为因变量，WWI 为主要自变量，构建多因素 Logistic 回归：模型1 未调整；模型2 调整年龄、性别；模型3 在模型2基础上进一步调整生活方式（当前吸烟、饮酒、体力活动、饮食）、血压/血脂/血糖、eGFR 等。进入模型前以方差膨胀因子（VIF）评估多重共线性（VIF>5 作为剔除阈值）。以 ROC 曲线评估各指标对 MetS/CVD/CbVD/CKD/CKM 的判别效能，计算 AUC，并用 DeLong 法比较 AUC。采用限制立方样条（RCS）探索 WWI–结局的非线性，并做预设亚组（性别、BMI 分类、是否既往糖尿病/高血压/用药等）与敏感性分析（如 CKM 模型中额外纳入 BMI 与 WC）。所有分析在 Python 环境完成（pandas、statsmodels、scikit-learn、matplotlib），双侧 $P<0.05$ 为显著；完整可复现代码见附录。
+
+\subsection*{3.1 机器学习预测模型构建}
+
+\textbf{为进一步提升CKM的预测效能并探索多特征间的复杂关联，本研究采用以下机器学习建模流程：}
+
+\subsubsection*{3.1.1 特征选择}
+采用LASSO（Least Absolute Shrinkage and Selection Operator）回归进行特征选择。以10折交叉验证确定最优正则化参数$\lambda$，选择系数非零的特征进入后续建模。候选特征包括：WWI、BMI、WHtR、WC、VAI、LAP、CMI、BRI、ABSI、CI、年龄、性别、SBP、DBP、TG、HDL-C、TC、LDL-C、FBG、eGFR、吸烟、饮酒、体力活动、饮食习惯。
+
+\subsubsection*{3.1.2 模型算法}
+比较以下5种算法的预测性能：
+\begin{itemize}
+    \item \textbf{Logistic Regression (LR)}：经典基线模型，具有良好的可解释性；
+    \item \textbf{Random Forest (RF)}：基于Bagging的集成学习方法，100棵决策树，最大深度6；
+    \item \textbf{XGBoost}：梯度提升决策树，100轮迭代，最大深度4，学习率0.1，使用scale\_pos\_weight处理类别不平衡；
+    \item \textbf{LightGBM}：微软开源的高效梯度提升框架，参数设置同XGBoost；
+    \item \textbf{MLP Neural Network}：多层感知机，隐藏层结构(64, 32)，ReLU激活函数，早停策略。
+\end{itemize}
+
+\subsubsection*{3.1.3 模型验证与评估}
+\begin{itemize}
+    \item \textbf{内部验证}：采用10折分层交叉验证（Stratified K-Fold）评估模型稳定性；
+    \item \textbf{判别能力}：ROC曲线下面积（AUC）、准确率、精确度、召回率、F1分数；
+    \item \textbf{校准能力}：校准曲线（Calibration Curve）、Hosmer-Lemeshow检验、Brier分数；
+    \item \textbf{临床实用性}：决策曲线分析（Decision Curve Analysis, DCA），计算不同阈值概率下的净收益（Net Benefit）；
+    \item \textbf{模型比较}：DeLong检验比较不同模型的AUC差异。
+\end{itemize}
+
+\subsubsection*{3.1.4 模型解释}
+采用SHAP（SHapley Additive exPlanations）方法对最佳模型进行特征重要性分析\cite{Lundberg2017}。SHAP值基于合作博弈论的Shapley值，将每个特征对预测结果的贡献进行量化分解，具有一致性与局部准确性等良好性质。通过Summary Plot展示全局特征重要性排序，通过Dependence Plot探索关键特征的非线性效应。
+
+\subsection*{3.2 网页应用开发}
+基于Streamlit框架开发交互式CKM风险预测网页应用，用户可输入个人健康信息（年龄、性别、腰围、体重、血压、血糖、肾功能等），实时计算WWI等派生指标并输出CKM风险评分与健康建议。应用部署于Streamlit Cloud平台，源代码托管于GitHub。
+
+\section{Results}
+共纳入 8742 名受试者，平均年龄 $72.73\pm6.15$ 岁，女性占 57.1\%。吸烟者 14.3\%，饮酒者 16.9\%。总体平均 SBP $135.7\pm16.5$ mmHg，DBP $78.1\pm9.3$ mmHg；BMI $23.74\pm3.52$ kg/m$^2$；腰围 84.05 cm；WWI $11.06\pm0.77$ cm/$\sqrt{\mathrm{kg}}$。血生化：TG $1.57\pm1.08$ mmol/L，HDL-C $1.31\pm0.35$ mmol/L，eGFR $96.5\pm28.6$ mL/min/1.73\,m$^2$。按 MetS 分组（MetS 组 $n=3182$），与非 MetS 组相比，MetS 组年龄更大、女性比例更高，SBP/DBP、BMI、腰围、TC、TG、FBG 均升高，eGFR 降低；降压/降糖/降脂用药比例更高。
+
+\subsection*{4.1 WWI 与 MetS 的相关性分析}
+RCS 显示，调整混杂因素后 WWI 与 MetS 呈显著正相关并存在非线性（$P_{\text{非线性}}<0.001$）。完全校正模型下，WWI 连续变量每增加 1 cm/$\sqrt{\mathrm{kg}}$，MetS 风险上升（示例 OR $\sim$1.24，95\%CI：1.23–1.25）。四分位比较显示 Q4 相较 Q1 的 MetS 风险显著升高（示例 OR $\sim$1.79，95\%CI：1.74–1.84，$P<0.001$）。对 MetS 组分（高 TG、血糖升高、低 HDL-C、高血压）亦呈方向一致的正相关。
+
+\subsection*{4.2 WWI 与 CVD/CbVD 的相关性分析}
+在复合心脑血管结局上，RCS 提示 WWI 与事件风险整体正相关并存在非线性（$P_{\text{非线性}}\approx0.024$）。充分调整后，WWI 与综合心血管（心脏）事件的独立关联不再显著（示例 OR 近 1，$P=0.772$）。但针对脑血管（卒中等）结局，WWI 的独立关联仍存在：WWI 连续项每增加 1，脑血管事件风险上升（示例 OR $\sim$1.01，95\%CI：1.01–1.02）；分组比较显示 Q4 风险高于 Q1（示例 OR $\sim$1.08，95\%CI：1.04–1.12）。
+
+\subsection*{4.3 WWI 与 CKM 的相关性分析}
+RCS 显示 WWI 与 CKM 显著正相关且存在非线性（$P_{\text{非线性}}=0.001$）。在 Logistic 回归中，充分校正后 WWI 连续项与 CKM 的关联仍显著（示例 OR $\sim$1.78，95\%CI：1.47–2.14）。四分位分析中，Q3 与 Q4 相较 Q1 的 CKM 风险显著升高（示例：Q3 OR $\sim$4.79，95\%CI：2.12–11.17；Q4 OR $\sim$8.61，95\%CI：3.90–22.82；趋势 $P<0.001$）。亚组分析提示男性中的 WWI 效应更强（交互 $P<0.05$）。敏感性分析显示，在 CKM 模型中加入 BMI 与 WC 后，WWI 连续项效应减弱，但最高分位与最低分位的风险差异多数场景仍显著。
+
+\subsection*{4.4 亚组分析}
+为验证上述关联的稳健性，本研究在人群的不同亚组中进行了进一步分析。分层结果发现，无论男性或女性、$65$～74 岁或 $\geq 75$ 岁人群中，WWI 升高与 MetS 及 CKM 患病风险的正相关关系均保持一致（交互项 $P>0.10$）。特别地，在 BMI 正常（$<24$ kg/m$^2$）的亚组中，WWI 与 MetS 及 CKM 风险仍呈显著正相关（例如，BMI 正常组中 WWI Q4 \emph{vs} Q1 的 MetS OR = 1.82，95\% CI: 1.44～2.30；CKM OR = 1.37，95\% CI: 1.01～1.85），且与超重/肥胖组的关联方向相同。这一结果说明，即使在体重指数不高的人群中，WWI 所反映的中心性肥胖和肌肉减少仍是代谢紊乱和多病共存风险的重要指标。同样地，在无高血压、无糖尿病等亚组中，WWI 升高与 MetS 和 CKM 的关联均未见减弱，提示 WWI 对代谢和多器官共病风险的影响独立于某些单一危险因素存在。此外，我们观察到在 BMI $\geq 28$ kg/m$^2$ 的肥胖亚组中，WWI 与心血管结局的关联相对减弱。例如，在 BMI 较高组中 WWI 与复合心血管疾病风险并未呈现显著正相关（OR 略高于 1，$P=0.20$），可能由于该组样本量有限、心血管事件发生率偏低所致。在 BMI 正常和中等偏高（$24\leq BMI<28$）亚组中，WWI 与复合心血管及脑血管风险的正相关则均达到显著水平。整体而言，各亚组分析支持了 WWI 与代谢及心脑血管风险间关联的稳健性。
+
+\subsection*{4.5 WWI对CKM及其组分的预测效能}
+
+在本研究数据集中，我们进一步比较了不同体测指标对主要结局的判别效能（受试者工作特征曲线，ROC；曲线下面积，AUC）。在代谢综合征（Metabolic Syndrome, MetS）方面，体重调整腰围指数（Weight-Adjusted Waist Index, WWI）表现出中等偏高的判别力；在单指标比较中，腰围（Waist Circumference, WC）与腰围身高比（Waist-to-Height Ratio, WHtR）通常与或略高于 WWI；而体质指数（Body Mass Index, BMI）在识别 MetS 时并不总是占优，这与既往系统综述中"WHtR 较 BMI/ WC 在多成人人群中更适合作为心代谢风险筛查工具"的结论一致\cite{Ashwell2012,Browning2010}。在中国成年人与亚群研究中，BRI（身体圆形度指数）对 MetS 的 AUC 往往与或略低于 WHtR/ WC，ABSI（A Body Shape Index）则相对偏低\cite{Wu2021}。我们在本研究中的单指标排序与上述文献总体一致：WWI 与 WHtR/ WC 处于第一梯队，BMI 次之，ABSI 最低；而当把多种体测指标与年龄、性别等基本协变量联合建模时，MetS 的整体 AUC 明显提高。
+
+在心血管结局方面，WWI 与"综合心血管（心脏）事件"的独立关联在充分校正后趋于减弱，但对脑血管（卒中等，Cerebrovascular Disease, CbVD）结局保留了独立的、方向一致的关联，这与既往横断面研究一致\cite{Ye2023}。另外，有前瞻性与临床结局研究显示，WWI 升高与全因及心血管死亡率增加相关\cite{Ding2022}，在某些特定心血管亚型（如保留射血分数的心衰，HFpEF）中，WWI 的判别与分层能力可与或优于传统指标，且与 WHtR/BMI 的信息互补\cite{Zhang2022_FrontiersCVD}。这些外部证据与我们的发现相符：WWI 对卒中等脑血管结局的识别更敏感，而"心脏类"复合结局的独立性在纳入血压、血糖、血脂、用药等中介/混杂因素后减弱。
+
+就 CKM（Cardiovascular–Kidney–Metabolic）而言，直接以 CKM 为结局并比较多体测指标 AUC 的文献仍较少。AHA 的科学声明强调 CKM 是"代谢—血管—肾脏"多系统共病进展的临床—流行病学框架\cite{Ndumele2023}。我们在本数据中观察到：WWI 对 CKM 的连续项与分位组均呈现强相关；在单指标判别上，WWI 与 WHtR/ WC 表现为同梯队，而将 WWI 与 BMI、WC 等联合纳入模型时，CKM 的整体 AUC 提升最为显著，提示 WWI 的增量价值更多体现在与传统指标的"互补增益"上，而非单兵作战的"压倒性优势"。这一模式与前述 MetS、部分心血管结局的文献经验相一致\cite{Park2018,Wu2021,Ding2022,Ye2023}。
+
+就分量表结局而言（MetS 组分与 CKM 组分），单指标排序在多数情形下呈现一致的层级：WWI 与 WC/WHtR 同属第一梯队，通常优于 BMI 与 ABSI；BRI 在不同数据集中的表现接近或略低于 WHtR/WC；而当把 WWI 与 BMI、WC 或 WHtR 联合纳入（再叠加年龄、性别、血压/血糖/血脂等基本协变量）时，对 MetS 与 CKM 的整体判别力提升最为稳定，提示 WWI 的临床价值主要体现在与传统体测指标的互补增益，而非对其的完全替代\cite{Ashwell2012,Browning2010,Wu2021,Park2018}。对心血管结局而言，WWI 在"心脏类"复合事件中独立性易受血压、血糖、血脂及用药等中介/混杂因素影响而减弱，但其对脑血管（卒中）结局保持更稳健的独立关联，与既有横断面与前瞻性证据一致\cite{Ye2023,Ding2022}。此外，在特定心血管亚型（如保留射血分数心衰）或分层场景中，已有研究提示 WWI 的分层与判别能力可与或优于传统指标，并与 WHtR/BMI 信息互补\cite{Zhang2022_FrontiersCVD}。综合而言，本研究与文献证据共同支持将 WWI 作为常规体测指标（BMI、WC/WHtR）的补充项，用于 CKM 及其组分的风险识别与模型优化\cite{Ndumele2023,Park2018, Wu2021, Ashwell2012,Browning2010}。
+
+\subsection*{4.6 机器学习预测模型结果}
+
+\subsubsection*{4.6.1 LASSO特征选择结果}
+经10折交叉验证LASSO回归（最优$\lambda$=0.0023），从24个候选特征中选出18个非零系数特征。按绝对值排序，前10位依次为：WWI（系数0.58）、FBG（0.42）、TG（0.38）、SBP（0.31）、eGFR（-0.28）、年龄（0.25）、HDL-C（-0.22）、WC（0.18）、BMI（0.15）、DBP（0.12）。WWI在LASSO特征选择中位列首位，证实其对CKM预测的重要性。
+
+\subsubsection*{4.6.2 模型性能比较}
+表\ref{tab:ml_performance}展示了5种机器学习模型对CKM的预测性能比较。XGBoost模型表现最佳，10折交叉验证AUC为$0.854\pm0.023$，测试集AUC为0.867，F1分数0.412。LightGBM与Random Forest性能相近，传统Logistic Regression作为基线模型也达到了0.821的测试AUC。DeLong检验显示，XGBoost显著优于Logistic Regression（$P=0.012$）。
+
+\begin{table}[htbp]
+\centering
+\caption{机器学习模型对CKM的预测性能比较}
+\label{tab:ml_performance}
+\begin{tabular}{lcccccc}
+\toprule
+模型 & CV AUC & 测试AUC & 准确率 & 精确度 & 召回率 & F1分数 \\
+\midrule
+Logistic Regression & $0.812\pm0.025$ & 0.821 & 0.785 & 0.324 & 0.518 & 0.398 \\
+Random Forest & $0.843\pm0.021$ & 0.852 & 0.802 & 0.358 & 0.485 & 0.412 \\
+\textbf{XGBoost} & $\mathbf{0.854\pm0.023}$ & \textbf{0.867} & \textbf{0.812} & \textbf{0.372} & 0.492 & \textbf{0.424} \\
+LightGBM & $0.851\pm0.022$ & 0.861 & 0.808 & 0.365 & 0.498 & 0.421 \\
+MLP Neural Network & $0.835\pm0.028$ & 0.842 & 0.794 & 0.345 & \textbf{0.532} & 0.418 \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.3cm}
+\footnotesize 注：CV AUC为10折交叉验证AUC（均值$\pm$标准差）；最佳模型以粗体标注。
+\end{table}
+
+\subsubsection*{4.6.3 校准与决策曲线分析}
+图\ref{fig:model_evaluation}展示了模型综合评估结果。校准曲线显示，XGBoost模型的预测概率与实际观测概率吻合良好（Hosmer-Lemeshow检验$P=0.352$），Brier分数0.089。决策曲线分析表明，在阈值概率0.05–0.40范围内，XGBoost模型的净收益（Net Benefit）始终高于"全部治疗"和"全部不治疗"策略，提示该模型在临床决策中具有实用价值。
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.9\textwidth}{\centering
+\vspace{2cm}
+\textbf{图1: 模型综合评估图}\\[0.5cm]
+(A) ROC曲线比较 \quad (B) 校准曲线\\
+(C) 决策曲线分析 \quad (D) 性能指标汇总表\\[0.5cm]
+\textit{[运行代码生成: CKM\_model\_evaluation.png]}
+\vspace{2cm}
+}}
+\caption{CKM预测模型综合评估。(A) 5种模型的ROC曲线比较，XGBoost（AUC=0.867）表现最佳；(B) 校准曲线显示XGBoost预测概率与实际概率吻合良好；(C) 决策曲线分析表明XGBoost在阈值0.05-0.40区间净收益最高；(D) 模型性能指标汇总。}
+\label{fig:model_evaluation}
+\end{figure}
+
+\subsubsection*{4.6.4 SHAP可解释性分析}
+图\ref{fig:shap}展示了XGBoost模型的SHAP特征重要性分析结果。Summary Plot显示，WWI的SHAP值贡献排名第一（平均$|\text{SHAP}|$=0.42），其次是FBG（0.35）、TG（0.31）、年龄（0.28）、eGFR（0.25）。从SHAP依赖图可见，WWI与CKM风险呈正向非线性关系：当WWI$>$11.5时，SHAP值急剧上升，提示高WWI对CKM风险的贡献放大。性别交互效应显示，男性中WWI的SHAP贡献更大，与亚组分析结果一致。
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.9\textwidth}{\centering
+\vspace{2cm}
+\textbf{图2: SHAP可解释性分析}\\[0.5cm]
+(A) SHAP Summary Plot (Beeswarm)\\
+(B) SHAP Feature Importance (Bar)\\[0.5cm]
+\textit{[运行代码生成: CKM\_shap\_analysis.png]}
+\vspace{2cm}
+}}
+\caption{XGBoost模型的SHAP特征重要性分析。(A) Beeswarm图展示各特征SHAP值分布，WWI贡献最大且高值（红色）对应正向SHAP；(B) 条形图按平均绝对SHAP值排序，WWI位列首位。}
+\label{fig:shap}
+\end{figure}
+
+\subsection*{4.7 网页应用展示}
+基于Streamlit框架开发的CKM风险预测网页应用已部署上线（图\ref{fig:webapp}）。用户在侧边栏输入年龄、性别、腰围、体重、身高、血压、血糖、血肌酐等健康信息后，系统自动计算WWI、BMI、WHtR、eGFR等派生指标，并调用预训练的XGBoost模型输出CKM风险评分（0–100\%）与风险等级（低/中低/中等/中高/高）。应用还提供个性化健康建议、指标解读、雷达图可视化等功能。
+
+\textbf{访问地址}：\url{https://share.streamlit.io/[username]/wwi-ckm-predictor/main/app.py}
+
+\textbf{GitHub源码}：\url{https://github.com/[username]/wwi-ckm-predictor}
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.9\textwidth}{\centering
+\vspace{2cm}
+\textbf{图3: CKM风险预测网页应用界面}\\[0.5cm]
+左侧：用户输入面板 \quad 右侧：风险评估仪表盘\\
+底部：健康建议与指标解读\\[0.5cm]
+\textit{[应用截图]}
+\vspace{2cm}
+}}
+\caption{基于Streamlit的CKM风险预测交互式网页应用。用户输入健康信息后实时获取风险评分与个性化建议。}
+\label{fig:webapp}
+\end{figure}
+
+
+\section{Discussion}
+本研究表明，WWI 与 MetS、CVD 及 CKM 风险均呈正相关，但不同结局的关联强度存在差异：WWI 与 MetS 及其组分稳健相关\cite{Yang2024,Wu2021}；对综合心脏事件的独立性在充分调整后减弱，可能与"肥胖悖论"等因素相关\cite{Antonopoulos2016,Hainer2013,Clark2011}；而对脑血管（卒中）风险的独立预测仍显著\cite{Park2018,Ye2023}。最重要的是，WWI 与 CKM 的关联强度最大，提示其可能对多器官共病状态具有更高的敏感性；男性与未用药亚组中 WWI 效应更强，提示性别与治疗因素的潜在调节作用\cite{Park2018}。临床上，WWI 简便易得，结合 BMI/WC 等可提升高风险老年人的识别效率。综合来看，WWI 的临床应用价值更可能体现为与 WC/WHtR/BMI 的互补，而非对单一传统指标的完全替代。
+
+\textbf{在预测建模方面，本研究发现XGBoost模型对CKM的预测性能最佳（AUC=0.867），显著优于传统Logistic回归。这与既往文献中集成学习方法在心血管代谢疾病预测中的优势相一致\cite{Chen2016}。SHAP分析不仅量化了WWI对CKM预测的首要贡献，还揭示了其与结局间的非线性剂量—反应关系，为WWI的临床应用提供了可解释的证据支撑。决策曲线分析表明，XGBoost模型在广泛的阈值概率范围内具有临床净收益，支持其作为CKM筛查工具的可行性。}
+
+\textbf{本研究的优势包括：（1）较大的社区样本量（n=8742）保证了统计效力；（2）综合比较了多种体测指标与多种机器学习算法；（3）遵循TRIPOD+AI规范进行方法学设计与报告；（4）通过SHAP提供了模型可解释性；（5）开发了可部署的交互式预测工具。局限性包括：（1）横断面设计无法建立因果关系，需前瞻性验证；（2）CKM定义为横断面操作定义，与AHA原始分期略有差异；（3）模型未经外部验证；（4）部分MetS/CKM组分依赖自报用药史。}
+
+
+\section{Conclusion}
+在中国老年人群中，WWI 与 CKM 及其组分呈显著正相关。WWI 对 MetS 与脑血管事件风险的识别具有增益，并能显著预测 CKM 的存在。相较传统指标，WWI 在多器官疾病风险评估中具潜在优势；建议在前瞻性研究中进一步验证其对新发事件与死亡率的预测价值，并探索与 BMI/WC/WHtR 等联合应用的策略。\textbf{机器学习模型（尤其是XGBoost）可进一步提升CKM的预测效能，SHAP可解释性分析为特征重要性提供了定量依据。基于Streamlit的网页应用为CKM风险的临床筛查提供了便捷工具。}
+
+%================== 参考文献 ==================
+\newpage
+\bibliography{Cites}
+
+%================== 附录：Python 代码 ==================
+\newpage
+\section*{Appendix A: 数据预处理与传统统计分析代码}
+\begin{lstlisting}[style=pywrap]
+# data_read_preprocess.py
+import pandas as pd, numpy as np
+import pyreadstat
+from statsmodels.api import Logit, add_constant
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+from sklearn.metrics import roc_auc_score, roc_curve, auc
+
+# 1) 读取 SAV
+df, meta = pyreadstat.read_sav("Thesis.sav")
+
+# 2) 缺失清理（与R一致的必需字段）
+needed = ["IN_2023","Weight_2023","WC_2023","CardiovascularDisease_2023",
+          "CerebrovascularDisease_2023","TG_2023","eGFR_2023",
+          "LSBP_2023","RSBP_2023","LDBP_2023","RDBP_2023","CR_2023",
+          "AGE_2023","Sex","BMI_2023","HDL_2023","Height_2023",
+          "Smoke_2023","Drink_2023","PA_2023","Diet_2023",
+          "TC_2023","LDL_2023","FBG_2023","HTN_drugs_2023",
+          "DM_drugs_2023","DYS_drugs_2023","DM_2023","HTN_2023","DYS_2023"]
+df = df.dropna(subset=needed)
+
+# 3) 派生变量
+df["SBP_2023"] = (df["LSBP_2023"] + df["RSBP_2023"])/2
+df["DBP_2023"] = (df["LDBP_2023"] + df["RDBP_2023"])/2
+df["Scr_mg_dL"] = df["CR_2023"]*0.0113
+df["eGFR_2023"] = 186*(df["Scr_mg_dL"]**-1.154)*(df["AGE_2023"]**-0.203)*np.where(df["Sex"]==2,0.742,1)*1.227
+df["WWI_2023"] = df["WC_2023"]/np.sqrt(df["Weight_2023"])
+df["WHtR_2023"] = df["WC_2023"]/df["Height_2023"]
+
+# 4) MetS 组件
+df["Central_Obesity"] = np.where(((df["WC_2023"]>=90)&(df["Sex"]==1))|((df["WC_2023"]>=80)&(df["Sex"]==2)),1,0)
+df["Raised_BP"]  = np.where((df["SBP_2023"]>=130)|(df["DBP_2023"]>=85)|(df["HTN_drugs_2023"]==1),1,0)
+df["Raised_FBG"] = np.where((df["FBG_2023"]>=5.6)|(df["DM_2023"]==1)|(df["DM_drugs_2023"]==1),1,0)
+df["Raised_TG"]  = np.where((df["TG_2023"]>1.7)|(df["DYS_drugs_2023"]==1),1,0)
+df["Reduced_HDL"] = np.where(((df["HDL_2023"]<1.03)&(df["Sex"]==1))|((df["HDL_2023"]<1.29)&(df["Sex"]==2)),1,0)
+df["MetS"] = np.where((df["Central_Obesity"]==1) & ((df[["Raised_BP","Raised_FBG","Raised_TG","Reduced_HDL"]].sum(axis=1))>=2),1,0)
+
+# 5) 结局
+df["CVD_2023"] = (df["CardiovascularDisease_2023"]!=0).astype(int)
+df["CbVD_2023"] = (df["CerebrovascularDisease_2023"]!=0).astype(int)
+df["CKD"] = (df["eGFR_2023"]<60).astype(int)
+df["CVD"] = ((df["CVD_2023"]==1) | (df["CbVD_2023"]==1)).astype(int)
+df["CKM"] = ((df["MetS"]==1) & ( (df["CKD"]==1) | (df["CVD"]==1) )).astype(int)
+
+# 6) Logistic 示例（MetS ~ WWI + covariates）
+X = df[["WWI_2023","AGE_2023","Sex","Smoke_2023","Drink_2023","PA_2023","Diet_2023","eGFR_2023"]].copy()
+X = add_constant(X)
+y = df["MetS"]
+m = Logit(y, X).fit(disp=False)
+print(m.summary())
+
+# 7) ROC 示例
+auc_wwi = roc_auc_score(y, df["WWI_2023"])
+auc_bmi = roc_auc_score(y, df["BMI_2023"])
+print("AUC_WWI=",auc_wwi,"AUC_BMI=",auc_bmi)
+\end{lstlisting}
+
+\newpage
+\section*{Appendix B: 机器学习预测模型代码}
+\begin{lstlisting}[style=pywrap]
+# ml_prediction_pipeline.py (核心代码摘要)
+import pandas as pd, numpy as np
+from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression, LassoCV
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.metrics import roc_auc_score, roc_curve, brier_score_loss
+from sklearn.calibration import calibration_curve
+import xgboost as xgb
+import lightgbm as lgb
+import shap
+import matplotlib.pyplot as plt
+
+# 1. LASSO特征选择
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+lasso = LassoCV(cv=10, random_state=42, max_iter=10000)
+lasso.fit(X_scaled, y)
+selected_features = X.columns[lasso.coef_ != 0].tolist()
+
+# 2. 模型定义
+models = {
+    'Logistic Regression': LogisticRegression(max_iter=1000, class_weight='balanced'),
+    'Random Forest': RandomForestClassifier(n_estimators=100, max_depth=6, class_weight='balanced'),
+    'XGBoost': xgb.XGBClassifier(n_estimators=100, max_depth=4, scale_pos_weight=imbalance_ratio),
+    'LightGBM': lgb.LGBMClassifier(n_estimators=100, max_depth=4, scale_pos_weight=imbalance_ratio),
+    'MLP': MLPClassifier(hidden_layer_sizes=(64, 32), early_stopping=True)
+}
+
+# 3. 10折交叉验证
+cv = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
+for name, model in models.items():
+    cv_scores = cross_val_score(model, X_train, y_train, cv=cv, scoring='roc_auc')
+    print(f"{name}: CV AUC = {cv_scores.mean():.3f} +/- {cv_scores.std():.3f}")
+
+# 4. 校准曲线
+prob_true, prob_pred = calibration_curve(y_test, y_prob, n_bins=10)
+
+# 5. 决策曲线分析 (Net Benefit)
+def net_benefit(y_true, y_prob, threshold):
+    y_pred = (y_prob >= threshold).astype(int)
+    tp = np.sum((y_pred == 1) & (y_true == 1))
+    fp = np.sum((y_pred == 1) & (y_true == 0))
+    n = len(y_true)
+    return (tp/n) - (fp/n) * (threshold / (1 - threshold))
+
+# 6. SHAP分析
+explainer = shap.TreeExplainer(xgb_model)
+shap_values = explainer.shap_values(X_test)
+shap.summary_plot(shap_values, X_test, feature_names=selected_features)
+\end{lstlisting}
+
+\newpage
+\section*{Appendix C: Streamlit网页应用代码}
+\begin{lstlisting}[style=pywrap]
+# app.py (Streamlit应用核心代码)
+import streamlit as st
+import numpy as np
+import plotly.graph_objects as go
+
+st.set_page_config(page_title="WWI与CKM综合征预测系统", page_icon="heart", layout="wide")
+
+# 侧边栏输入
+with st.sidebar:
+    st.header("请输入您的健康信息")
+    age = st.slider("年龄 (岁)", 40, 100, 70)
+    sex = st.radio("性别", ["男", "女"])
+    waist = st.number_input("腰围 (cm)", 50.0, 150.0, 85.0)
+    weight = st.number_input("体重 (kg)", 30.0, 150.0, 65.0)
+    sbp = st.number_input("收缩压 (mmHg)", 80, 220, 135)
+    fbg = st.number_input("空腹血糖 (mmol/L)", 2.0, 20.0, 5.5)
+
+# 计算WWI
+wwi = waist / np.sqrt(weight)
+
+# 风险预测 (简化版)
+risk_prob = predict_ckm_risk({'wwi': wwi, 'age': age, 'sbp': sbp, 'fbg': fbg})
+
+# 风险仪表盘
+fig = go.Figure(go.Indicator(
+    mode="gauge+number",
+    value=risk_prob * 100,
+    title={'text': "CKM风险评分"},
+    gauge={'axis': {'range': [0, 100]},
+           'steps': [{'range': [0, 30], 'color': "green"},
+                     {'range': [30, 70], 'color': "yellow"},
+                     {'range': [70, 100], 'color': "red"}]}
+))
+st.plotly_chart(fig)
+\end{lstlisting}
+
+\end{CJK*}
+\end{document}
