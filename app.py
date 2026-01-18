@@ -583,8 +583,8 @@ def main():
             st.plotly_chart(fig, use_container_width=True)
         
         with col2:
-            # ????????????
-            indicator_choice = st.selectbox("??????", ["WC", "WHtR", "WWI", "BMI"])
+            # Indicator distribution (selectable)
+            indicator_choice = st.selectbox("Select indicator", ["WC", "WHtR", "WWI", "BMI"])
             np.random.seed(42)
             if indicator_choice == "WC":
                 population = np.random.normal(84.0, 9.0, 1000)
@@ -616,7 +616,7 @@ def main():
                          line_color="red", annotation_text=f"??{indicator_choice}: {user_value:.2f}")
             
             fig.update_layout(
-                title=f"{indicator_choice}??????????",
+                title=f"{indicator_choice} distribution (your position)",
                 xaxis_title=x_title,
                 yaxis_title="??",
                 showlegend=True
