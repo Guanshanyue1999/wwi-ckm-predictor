@@ -263,6 +263,7 @@ def main():
         age = st.slider("年龄 (岁)", 40, 100, 70)
         sex = st.radio("性别", ["男", "女"], horizontal=True)
         sex_code = 1 if sex == "男" else 2
+        wc_threshold = 90 if sex_code == 1 else 80
         
         st.subheader("📏 体格测量")
         col1, col2 = st.columns(2)
@@ -456,7 +457,6 @@ def main():
     with tab2:
         st.header("📊 您的健康指标")
         
-        wc_threshold = 90 if sex_code == 1 else 80
         col1, col2, col3, col4, col5 = st.columns(5)
         
         with col1:
