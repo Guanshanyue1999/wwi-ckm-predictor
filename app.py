@@ -38,40 +38,114 @@ st.set_page_config(
 # ============================================================================
 st.markdown("""
 <style>
-    .main-header {
-        font-size: 2.5rem;
-        font-weight: bold;
-        color: #1E3A5F;
-        text-align: center;
-        margin-bottom: 0.5rem;
-    }
-    .sub-header {
-        font-size: 1.2rem;
-        color: #666;
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-    .metric-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 1.5rem;
-        border-radius: 15px;
-        color: white;
-        text-align: center;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-    .risk-high {
-        background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
-    }
-    .risk-low {
-        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-    }
-    .info-box {
-        background-color: #f0f7ff;
-        padding: 1rem;
-        border-radius: 10px;
-        border-left: 4px solid #1E3A5F;
-        margin: 1rem 0;
-    }
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;600&family=Source+Serif+4:wght@600;700&display=swap');
+:root {
+    --ink: #0f1b2d;
+    --muted: #5b6b7a;
+    --accent: #2f6fed;
+    --accent-2: #1aa7a1;
+    --card: #ffffff;
+    --paper: #f7f6f1;
+    --shadow: 0 10px 30px rgba(15, 27, 45, 0.08);
+}
+.stApp {
+    background:
+        radial-gradient(900px 400px at 85% -10%, rgba(187, 212, 255, 0.55) 0%, rgba(187, 212, 255, 0) 60%),
+        radial-gradient(800px 500px at 10% 10%, rgba(217, 245, 238, 0.6) 0%, rgba(217, 245, 238, 0) 55%),
+        linear-gradient(180deg, #f7f8fb 0%, #f2f0ea 100%);
+}
+html, body, [class*="css"] {
+    font-family: 'IBM Plex Sans', 'Noto Sans SC', sans-serif;
+    color: var(--ink);
+}
+.hero {
+    background: linear-gradient(135deg, #ffffff 0%, #f6f3ee 100%);
+    border: 1px solid rgba(15, 27, 45, 0.08);
+    border-radius: 18px;
+    padding: 1.6rem 1.8rem;
+    box-shadow: var(--shadow);
+    animation: fadeUp 0.6s ease-out both;
+}
+.hero-title {
+    font-family: 'Source Serif 4', 'Noto Serif SC', serif;
+    font-size: 3.1rem;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: 0.3px;
+    margin: 0;
+}
+.hero-sub {
+    font-size: 1.15rem;
+    color: var(--muted);
+    margin-top: 0.45rem;
+}
+.hero-tags {
+    margin-top: 0.8rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.hero-tag {
+    background: #eef3ff;
+    color: #2f4fb0;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    border: 1px solid rgba(47, 79, 176, 0.2);
+}
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 0.8rem;
+    margin-top: 0.9rem;
+}
+.info-card {
+    background: var(--card);
+    border: 1px solid rgba(15, 27, 45, 0.08);
+    border-radius: 14px;
+    padding: 0.85rem 1rem;
+    box-shadow: var(--shadow);
+    animation: fadeUp 0.6s ease-out both;
+}
+.info-card h4 {
+    margin: 0 0 0.35rem 0;
+    font-size: 1rem;
+    color: var(--ink);
+}
+.info-card p {
+    margin: 0;
+    font-size: 0.92rem;
+    color: var(--muted);
+    line-height: 1.4;
+}
+.metric-card {
+    background: linear-gradient(135deg, #2f6fed 0%, #1aa7a1 100%);
+    padding: 1.5rem;
+    border-radius: 15px;
+    color: white;
+    text-align: center;
+    box-shadow: 0 8px 20px rgba(47, 111, 237, 0.2);
+}
+.risk-high {
+    background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+}
+.risk-low {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+.info-box {
+    background-color: #f0f7ff;
+    padding: 1rem;
+    border-radius: 10px;
+    border-left: 4px solid #1E3A5F;
+    margin: 1rem 0;
+}
+section[data-testid="stSidebar"] > div {
+    background: linear-gradient(180deg, #f7f8fb 0%, #eef1f6 100%);
+}
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -244,13 +318,45 @@ def get_risk_category(prob):
 # 主界面
 # ============================================================================
 def main():
-    # 标题
-    st.markdown('<p class="main-header">🫀 多种中心性肥胖指标与CKM综合征预测系统</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-header">基于机器学习的心肾代谢综合征风险评估工具</p>', unsafe_allow_html=True)
-    st.info(
-        "模型输入指标：体型指标（WC、WHtR、WWI、BMI）；代谢/肾功能（SBP、DBP、TG、HDL、LDL、TC、FBG、eGFR）；"
-        "生活方式与用药（吸烟、饮酒、体力活动、降压/降糖/降脂）；基本信息（年龄、性别）。"
-    )
+    # 标题与说明
+    st.markdown("""
+    <div class="hero">
+        <div class="hero-title">多种中心性肥胖指标与CKM综合征预测系统</div>
+        <div class="hero-sub">基于机器学习的心肾代谢综合征风险评估工具</div>
+        <div class="hero-tags">
+            <span class="hero-tag">多指标比较</span>
+            <span class="hero-tag">XGBoost 预测模型</span>
+            <span class="hero-tag">可解释性 SHAP</span>
+            <span class="hero-tag">老年人群数据</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="info-grid">
+        <div class="info-card">
+            <h4>使用说明</h4>
+            <p>在左侧输入体型、代谢与肾功能信息，系统自动计算 WC/WHtR/WWI/BMI 并给出 CKM 风险评估。</p>
+        </div>
+        <div class="info-card">
+            <h4>模型说明</h4>
+            <p>模型基于 XGBoost，特征包含体型指标 + 血压血脂血糖 + eGFR + 生活方式与用药；测试集 AUC ≈ 0.93。</p>
+        </div>
+        <div class="info-card">
+            <h4>注意事项</h4>
+            <p>结果用于科研与健康管理参考，不替代临床诊断；建议结合医生意见综合评估。</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    st.markdown("""
+    <div class="info-box">
+        <b>模型输入指标：</b>
+        体型（WC、WHtR、WWI、BMI）；
+        代谢/肾功能（SBP、DBP、TG、HDL、LDL、TC、FBG、eGFR）；
+        生活方式与用药（吸烟、饮酒、体力活动、降压/降糖/降脂）；
+        基本信息（年龄、性别）。
+    </div>
+    """, unsafe_allow_html=True)
 
     model, scaler, meta, load_error = load_model_assets()
     model_ready = model is not None and scaler is not None and load_error is None
@@ -629,7 +735,8 @@ def main():
             st.plotly_chart(fig, use_container_width=True)
         
         # CKM风险因素贡献
-        st.subheader("CKM风险因素贡献度")
+        st.subheader("CKM风险因素贡献度（示意）")
+        st.caption("提示：该图用于展示指标偏离程度的相对贡献，不代表因果权重或临床效应大小。")
         
         central_score = (
             max(0, (waist - wc_threshold) * 0.6)
