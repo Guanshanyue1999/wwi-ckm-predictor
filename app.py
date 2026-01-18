@@ -607,18 +607,23 @@ def main():
             fig.add_trace(go.Histogram(
                 x=population,
                 nbinsx=30,
-                name='????',
+                name='Population',
                 marker_color='#1f77b4',
                 opacity=0.7
             ))
             
-            fig.add_vline(x=user_value, line_width=3, line_dash="dash",
-                         line_color="red", annotation_text=f"??{indicator_choice}: {user_value:.2f}")
+            fig.add_vline(
+                x=user_value,
+                line_width=3,
+                line_dash="dash",
+                line_color="red",
+                annotation_text=f"Your {indicator_choice}: {user_value:.2f}"
+            )
             
             fig.update_layout(
                 title=f"{indicator_choice} distribution (your position)",
                 xaxis_title=x_title,
-                yaxis_title="??",
+                yaxis_title="Count",
                 showlegend=True
             )
             st.plotly_chart(fig, use_container_width=True)
