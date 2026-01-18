@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 ================================================================================
-WWI与CKM综合征预测 - Streamlit网页应用
+多种中心性肥胖指标与CKM综合征预测 - Streamlit网页应用
 课程项目展示网页 - 北京大学医学部健康数据科学Python编程
 学生：郑赫 (2511110259)
 个人主页：https://guanshanyue1999.github.io/
@@ -27,7 +27,7 @@ import json
 # 页面配置
 # ============================================================================
 st.set_page_config(
-    page_title="WWI与CKM综合征预测系统",
+    page_title="多种中心性肥胖指标与CKM综合征预测系统",
     page_icon="🫀",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -245,8 +245,12 @@ def get_risk_category(prob):
 # ============================================================================
 def main():
     # 标题
-    st.markdown('<p class="main-header">🫀 WWI与CKM综合征预测系统</p>', unsafe_allow_html=True)
+    st.markdown('<p class="main-header">🫀 多种中心性肥胖指标与CKM综合征预测系统</p>', unsafe_allow_html=True)
     st.markdown('<p class="sub-header">基于机器学习的心肾代谢综合征风险评估工具</p>', unsafe_allow_html=True)
+    st.info(
+        "模型输入指标：体型指标（WC、WHtR、WWI、BMI）；代谢/肾功能（SBP、DBP、TG、HDL、LDL、TC、FBG、eGFR）；"
+        "生活方式与用药（吸烟、饮酒、体力活动、降压/降糖/降脂）；基本信息（年龄、性别）。"
+    )
 
     model, scaler, meta, load_error = load_model_assets()
     model_ready = model is not None and scaler is not None and load_error is None
@@ -423,8 +427,12 @@ def main():
         st.subheader("💡 健康建议")
         
         suggestions = []
+        if waist >= wc_threshold:
+            suggestions.append("⚠️ 腰围偏高，提示中心性肥胖风险增加，建议控制总能量摄入并加强运动。")
+        if whtr >= 0.5:
+            suggestions.append("⚠️ WHtR偏高（≥0.5），提示腹型肥胖风险增加。")
         if wwi > 11.5:
-            suggestions.append("⚠️ 您的WWI偏高，建议关注腰腹部脂肪管理，增加有氧运动。")
+            suggestions.append("⚠️ WWI偏高，可作为中心性肥胖的补充提示指标。")
         if bmi >= 28:
             suggestions.append("⚠️ BMI提示肥胖，建议在医生指导下进行体重管理。")
         if sbp >= 140 or dbp >= 90:
@@ -448,9 +456,19 @@ def main():
     with tab2:
         st.header("📊 您的健康指标")
         
-        col1, col2, col3, col4 = st.columns(4)
+        wc_threshold = 90 if sex_code == 1 else 80
+        col1, col2, col3, col4, col5 = st.columns(5)
         
         with col1:
+            st.metric(
+                label="WC",
+                value=f"{waist:.1f}",
+                delta="正常" if waist < wc_threshold else "偏高",
+                delta_color="inverse" if waist >= wc_threshold else "off"
+            )
+            st.caption("参考范围：男<90 / 女<80")
+        
+        with col2:
             st.metric(
                 label="WWI",
                 value=f"{wwi:.2f}",
@@ -459,7 +477,7 @@ def main():
             )
             st.caption("参考范围：10.5-11.5")
         
-        with col2:
+        with col3:
             st.metric(
                 label="BMI",
                 value=f"{bmi:.1f}",
@@ -468,7 +486,7 @@ def main():
             )
             st.caption("参考范围：18.5-23.9")
         
-        with col3:
+        with col4:
             st.metric(
                 label="WHtR",
                 value=f"{whtr:.3f}",
@@ -477,7 +495,7 @@ def main():
             )
             st.caption("参考范围：<0.5")
         
-        with col4:
+        with col5:
             st.metric(
                 label="eGFR",
                 value=f"{egfr:.1f}",
@@ -491,14 +509,14 @@ def main():
         # 指标详细说明
         st.subheader("📖 指标说明")
         
-        with st.expander("WWI (体重调整腰围指数)", expanded=True):
+        with st.expander("中心性肥胖指标（WC / WHtR / WWI / BMI）", expanded=True):
             st.markdown("""
-            **定义：** WWI = 腰围(cm) / √体重(kg)
+            **WC（腰围）**：直接反映腹部脂肪堆积。常用阈值：男性≥90 cm、女性≥80 cm。  
+            **WHtR（腰围身高比）**：标准化后适合跨人群比较，常用阈值为 0.5。  
+            **WWI（体重调整腰围指数）**：WWI = 腰围(cm) / √体重(kg)，在控制体重影响的同时刻画中心性肥胖，可作为补充指标。  
+            **BMI（体质指数）**：反映总体肥胖程度，参考范围 18.5–23.9。  
             
-            **意义：** WWI是一种新型肥胖指标，能够反映"中心性肥胖"同时降低与体重的冗余。
-            研究表明，WWI升高与心血管疾病、脑卒中、全因死亡风险增加相关。
-            
-            **参考文献：** Park Y, et al. Scientific Reports. 2018;8:16753.
+            本系统将多指标联合输入模型进行预测，避免单一指标的信息局限。
             """)
         
         with st.expander("CKM综合征"):
@@ -524,13 +542,14 @@ def main():
         
         with col1:
             # 雷达图
-            categories = ['WWI', 'BMI', 'WHtR', '血压', '血糖', 'eGFR']
+            categories = ['WC', 'WHtR', 'WWI', 'BMI', '血压', '血糖', 'eGFR']
             
             # 归一化到0-100
             values = [
+                min(waist / 120 * 100, 100),
+                min(whtr / 0.7 * 100, 100),
                 min(wwi / 14 * 100, 100),
                 min(bmi / 35 * 100, 100),
-                min(whtr / 0.7 * 100, 100),
                 min(sbp / 180 * 100, 100),
                 min(fbg / 10 * 100, 100),
                 min(egfr / 120 * 100, 100)
@@ -546,7 +565,7 @@ def main():
             ))
             
             # 添加参考范围
-            reference = [11/14*100, 24/35*100, 0.5/0.7*100, 140/180*100, 6.1/10*100, 90/120*100]
+            reference = [wc_threshold/120*100, 0.5/0.7*100, 11/14*100, 24/35*100, 140/180*100, 6.1/10*100, 90/120*100]
             fig.add_trace(go.Scatterpolar(
                 r=reference,
                 theta=categories,
@@ -564,25 +583,42 @@ def main():
             st.plotly_chart(fig, use_container_width=True)
         
         with col2:
-            # WWI人群分布图
+            # ????????????
+            indicator_choice = st.selectbox("??????", ["WC", "WHtR", "WWI", "BMI"])
             np.random.seed(42)
-            population_wwi = np.random.normal(11.0, 0.8, 1000)
+            if indicator_choice == "WC":
+                population = np.random.normal(84.0, 9.0, 1000)
+                user_value = waist
+                x_title = "WC (cm)"
+            elif indicator_choice == "WHtR":
+                population = np.random.normal(0.53, 0.06, 1000)
+                user_value = whtr
+                x_title = "WHtR"
+            elif indicator_choice == "BMI":
+                population = np.random.normal(23.7, 3.5, 1000)
+                user_value = bmi
+                x_title = "BMI"
+            else:
+                population = np.random.normal(11.0, 0.8, 1000)
+                user_value = wwi
+                x_title = "WWI"
             
             fig = go.Figure()
             fig.add_trace(go.Histogram(
-                x=population_wwi,
+                x=population,
                 nbinsx=30,
-                name='人群分布',
+                name='????',
                 marker_color='#1f77b4',
                 opacity=0.7
             ))
-            fig.add_vline(x=wwi, line_width=3, line_dash="dash", 
-                         line_color="red", annotation_text=f"您的WWI: {wwi:.2f}")
+            
+            fig.add_vline(x=user_value, line_width=3, line_dash="dash",
+                         line_color="red", annotation_text=f"??{indicator_choice}: {user_value:.2f}")
             
             fig.update_layout(
-                title="WWI人群分布（您的位置）",
-                xaxis_title="WWI值",
-                yaxis_title="人数",
+                title=f"{indicator_choice}??????????",
+                xaxis_title=x_title,
+                yaxis_title="??",
                 showlegend=True
             )
             st.plotly_chart(fig, use_container_width=True)
@@ -590,8 +626,15 @@ def main():
         # CKM风险因素贡献
         st.subheader("CKM风险因素贡献度")
         
+        central_score = (
+            max(0, (waist - wc_threshold) * 0.6)
+            + max(0, (whtr - 0.5) * 120)
+            + max(0, (wwi - 10.5) * 8)
+            + max(0, (bmi - 24) * 2)
+        )
+        
         contributions = {
-            'WWI升高': max(0, (wwi - 10.5) * 15),
+            '中心性肥胖指标升高': central_score,
             '年龄': max(0, (age - 60) * 0.8),
             '高血压': max(0, (sbp - 120) * 0.3),
             '血糖升高': max(0, (fbg - 5.0) * 8),
@@ -602,7 +645,7 @@ def main():
             x=list(contributions.values()),
             y=list(contributions.keys()),
             orientation='h',
-            title="各因素对CKM风险的贡献",
+            title="各因素对CKM风险的贡献（示意）",
             labels={'x': '风险贡献度', 'y': '风险因素'},
             color=list(contributions.values()),
             color_continuous_scale='Reds'
@@ -618,8 +661,8 @@ def main():
         ### 研究背景
         
         本项目是北京大学医学部**健康数据科学的Python语言编程基础**课程的结课作业。
-        研究基于中国南方某社区8742名老年人的横断面数据，探索体重调整腰围指数(WWI)
-        与心肾代谢综合征(CKM)的关联与预测价值。
+        研究基于中国南方某社区8742名老年人的横断面数据，系统比较多种中心性肥胖指标
+        （WC、WHtR、WWI、BMI）与心肾代谢综合征(CKM)的关联与预测价值。
         
         ### 研究方法
         
@@ -631,10 +674,10 @@ def main():
         
         ### 主要发现
         
-        - WWI与CKM呈显著正相关（OR约1.78，95%CI: 1.47-2.14）
-        - WWI最高四分位相比最低四分位CKM风险显著升高（OR约8.61）
+        - WC与WHtR对CKM的单指标判别效能优于WWI
+        - WWI与CKM呈显著正相关，作为补充指标可提升联合模型表现
         - XGBoost模型预测CKM的AUC达到0.93左右
-        - SHAP分析显示WC/WHtR等指标贡献更大，WWI仍有贡献
+        - SHAP分析显示WC/WHtR贡献更大，WWI仍提供补充信息
         
         ### 作者信息
         
